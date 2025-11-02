@@ -25,12 +25,12 @@ go install github.com/tc-hib/go-winres@latest
 go-winres simply --icon icons/app.ico
 
 # Build
-go build -ldflags -H=windowsgui -o ez-mute.exe
+go build -ldflags -H=windowsgui -o go-mute.exe
 ```
 
 ## Installation
 
-1. Build the executable or use the pre-built `ez-mute.exe`
+1. Build the executable or use the pre-built `go-mute.exe`
 2. (Optional) Copy to startup folder for auto-start:
    ```
    C:\Users\<YourUsername>\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup
@@ -38,7 +38,7 @@ go build -ldflags -H=windowsgui -o ez-mute.exe
 
 ## Usage
 
-- **Run**: Double-click `ez-mute.exe`
+- **Run**: Double-click `go-mute.exe`
 - **Toggle Mute**: Press **F8**
 - **Exit**: Right-click system tray icon → Quit
 
@@ -55,7 +55,7 @@ To use a different key instead of F8:
    - A-Z: `0x41` to `0x5A`
    - 0-9: `0x30` to `0x39`
    - [Full list of virtual key codes](https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes)
-4. Rebuild: `go build -ldflags -H=windowsgui -o ez-mute.exe`
+4. Rebuild: `go build -ldflags -H=windowsgui -o go-mute.exe`
 
 ## Requirements
 

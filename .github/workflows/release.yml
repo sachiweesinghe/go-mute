@@ -31,15 +31,23 @@ jobs:
       working-directory: .
       
     - name: Build
-      run: go build -ldflags -H=windowsgui -o ez-mute.exe
+      run: go build -ldflags -H=windowsgui -o go-mute.exe
       working-directory: .
       
     - name: Get next version
-      id: semver
-      uses: ietf-tools/semver-action@v1
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        branch: main
+      id: version
+      run: |
+        $latestTag = git describe --tags --abbrev=0 2>$null
+        if ($latestTag) {
+          $version = $latestTag -replace '^v', ''
+          $parts = $version -split '\.'
+          $patch = [int]$parts[2] + 1
+          $nextVersion = "v$($parts[0]).$($parts[1]).$patch"
+        } else {
+          $nextVersion = "v1.0.0"
+        }
+        echo "next=$nextVersion" >> $env:GITHUB_OUTPUT
+      shell: pwsh
         
     - name: Create changelog
       id: changelog
@@ -60,8 +68,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ steps.semver.outputs.next }}
-        release_name: Release ${{ steps.semver.outputs.next }}
+        tag_name: ${{ steps.version.outputs.next }}
+        release_name: Release ${{ steps.version.outputs.next }}
         body: |
           ## Changes
           ${{ steps.changelog.outputs.commits }}
@@ -74,6 +82,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./ez-mute.exe
-        asset_name: ez-mute.exe
+        asset_path: ./go-mute.exe
+        asset_name: go-mute.exe
         asset_content_type: application/octet-stream
