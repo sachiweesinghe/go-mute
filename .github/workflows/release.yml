@@ -1,0 +1,79 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+      
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+        
+    - name: Install go-winres
+      run: go install github.com/tc-hib/go-winres@latest
+      
+    - name: Generate Windows resources
+      run: go-winres simply --icon icons/app.ico
+      working-directory: .
+      
+    - name: Build
+      run: go build -ldflags -H=windowsgui -o ez-mute.exe
+      working-directory: .
+      
+    - name: Get next version
+      id: semver
+      uses: ietf-tools/semver-action@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        branch: main
+        
+    - name: Create changelog
+      id: changelog
+      run: |
+        $lastTag = git describe --tags --abbrev=0 2>$null
+        if ($lastTag) {
+          $commits = git log "$lastTag..HEAD" --pretty=format:"- %s (%h)" | Out-String
+        } else {
+          $commits = git log --pretty=format:"- %s (%h)" | Out-String
+        }
+        $commits = $commits -replace "`r`n", "%0A"
+        echo "commits=$commits" >> $env:GITHUB_OUTPUT
+      shell: pwsh
+      
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.semver.outputs.next }}
+        release_name: Release ${{ steps.semver.outputs.next }}
+        body: |
+          ## Changes
+          ${{ steps.changelog.outputs.commits }}
+        draft: false
+        prerelease: false
+        
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./ez-mute.exe
+        asset_name: ez-mute.exe
+        asset_content_type: application/octet-stream
