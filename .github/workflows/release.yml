@@ -37,7 +37,9 @@ jobs:
     - name: Get next version
       id: version
       run: |
+        $ErrorActionPreference = 'SilentlyContinue'
         $latestTag = git describe --tags --abbrev=0 2>$null
+        $ErrorActionPreference = 'Stop'
         if ($latestTag) {
           $version = $latestTag -replace '^v', ''
           $parts = $version -split '\.'
@@ -46,20 +48,22 @@ jobs:
         } else {
           $nextVersion = "v1.0.0"
         }
-        "next=$nextVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+        "next=$nextVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
       shell: pwsh
         
     - name: Create changelog
       id: changelog
       run: |
+        $ErrorActionPreference = 'SilentlyContinue'
         $lastTag = git describe --tags --abbrev=0 2>$null
+        $ErrorActionPreference = 'Stop'
         if ($lastTag) {
           $commits = git log "$lastTag..HEAD" --pretty=format:"- %s (%h)" | Out-String
         } else {
           $commits = git log --pretty=format:"- %s (%h)" | Out-String
         }
-        $commits = $commits -replace "`r`n", "%0A"
-        "commits=$commits" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+        $commits = $commits -replace "`r`n", "%0A" -replace "`n", "%0A"
+        "commits=$commits" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
       shell: pwsh
       
     - name: Create Release
