@@ -21,7 +21,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version: '1.21'
+        go-version: 'stable'
         
     - name: Install go-winres
       run: go install github.com/tc-hib/go-winres@latest
@@ -46,7 +46,7 @@ jobs:
         } else {
           $nextVersion = "v1.0.0"
         }
-        echo "next=$nextVersion" >> $env:GITHUB_OUTPUT
+        "next=$nextVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
       shell: pwsh
         
     - name: Create changelog
@@ -59,7 +59,7 @@ jobs:
           $commits = git log --pretty=format:"- %s (%h)" | Out-String
         }
         $commits = $commits -replace "`r`n", "%0A"
-        echo "commits=$commits" >> $env:GITHUB_OUTPUT
+        "commits=$commits" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
       shell: pwsh
       
     - name: Create Release
